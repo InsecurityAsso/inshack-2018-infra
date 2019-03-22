@@ -1,0 +1,125 @@
+---
+monitored_groups:
+  - management
+  - internal-node
+  - internal-node-rescue
+  - internal-db-01
+  - chal-node
+  - chal-node-rescue
+  - privileged-node
+  - privileged-node-rescue
+  - registry
+  - registry-rescue
+  - registry-chal
+  - replica-01
+  - replica-02
+  - replica-03
+
+mysql_master: replica-01.infra.insecurity-insa.fr
+mysql_replication_group_name: 87174dee-7913-43d6-a8ac-72c31fc0edb1
+mysql_replication_groups:
+  - replica-01
+  - replica-02
+  - replica-03
+mysql_allowed_groups:
+  - rancher-server
+  - internal-node
+  - internal-node-rescue
+  - replica-01
+  - replica-02
+  - replica-03
+
+rancher_master_groups:
+  - replica-01
+  - replica-02
+  - replica-03
+  - rancher-server
+
+rancher_host_tags:
+  internal-db-01.infra.insecurity-insa.fr:
+    ssd: 1
+    persistent: 1
+    db: 1
+  internal-node-01.infra.insecurity-insa.fr:
+    web: 1
+    lb: 1
+  internal-node-02.infra.insecurity-insa.fr:
+    web: 1
+    lb: 1
+  internal-node-03.infra.insecurity-insa.fr:
+    monitoring: 1
+    lb: 1
+  internal-node-01.rescue.insecurity-insa.fr:
+    web: 1
+    lb: 1
+    monitoring: 1
+    rescue: 1
+  registry.infra.insecurity-insa.fr:
+    registry: 1
+  registry.rescue.insecurity-insa.fr:
+    registry: 1
+    rescue: 1
+  registry-chal.infra.insecurity-insa.fr:
+    registry-chal: 1
+  chal-node-01.infra.insecurity-insa.fr:
+    lb: 1
+    virtual-printer: 1
+  chal-node-02.infra.insecurity-insa.fr:
+    lb: 1
+    math-killer: 1
+  chal-node-03.infra.insecurity-insa.fr:
+    lb: 1
+    base65536: 1
+  chal-node-04.infra.insecurity-insa.fr:
+    lb: 1
+    notrandom: 1
+  chal-node-05.infra.insecurity-insa.fr:
+    lb: 0
+    gcorp-stage-4: 1
+  chal-node-06.infra.insecurity-insa.fr:
+    lb: 0
+    worm-in-apple: 1
+  chal-node-07.infra.insecurity-insa.fr:
+    lb: 0
+    ocr: 1
+  chal-node-08.infra.insecurity-insa.fr:
+    lb: 0
+    whitehouse: 1
+  chal-node-09.infra.insecurity-insa.fr:
+    lb: 0
+    crimemail: 1
+  chal-node-01.rescue.insecurity-insa.fr:
+    lb: 1
+    rescue: 1
+    ocr: 1
+    virtual-printer: 1
+    math-killer: 1
+    base65536: 1
+    notrandom: 1
+    gcorp-stage-4: 1
+    worm-in-apple: 1
+    whitehouse: 1
+    crimemail: 1
+  privileged-node-01.infra.insecurity-insa.fr:
+    lb: 1
+    gcorp-stage-2: 1
+  privileged-node-02.infra.insecurity-insa.fr:
+    lb: 1
+    curler: 1
+  privileged-node-03.infra.insecurity-insa.fr:
+    lb: 1
+    config-creator: 1
+  privileged-node-04.infra.insecurity-insa.fr:
+    lb: 1
+    opensource-as-a-service: 1
+  privileged-node-05.infra.insecurity-insa.fr:
+    lb: 0
+    sudo: 1
+  privileged-node-01.rescue.insecurity-insa.fr:
+    lb: 1
+    rescue: 1
+    config-creator: 1
+    curler: 1
+    gcorp-stage-2: 1
+    opensource-as-a-service: 1
+    sudo: 1

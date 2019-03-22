@@ -1,0 +1,6 @@
+---
+- name: Create partition
+  parted:
+    device: "{{ partition_item.device }}"
+    number: "{{ partition_item.number }}"
+    state: present

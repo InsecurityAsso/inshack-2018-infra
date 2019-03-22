@@ -1,0 +1,36 @@
+---
+- name: Copy ipset-custom script
+  copy:
+    src: ipset-custom
+    dest: /etc/init.d/ipset-custom
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart ipset-custom service
+
+- name: Create ipset-custom conf dir
+  file:
+    path: /etc/ipset.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart ipset-custom service
+
+- name: Copy ipset-custom rules
+  template:
+    src: ipset-custom-rules.j2
+    dest: /etc/ipset.d/custom.ipset
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart ipset-custom service
+
+- name: Copy ipsets-custom systemd
+  copy:
+    src: ipset-custom.service
+    dest: /etc/systemd/system/ipset-custom.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart ipset-custom service

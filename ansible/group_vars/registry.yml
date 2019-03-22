@@ -1,0 +1,16 @@
+rancher_node: true
+rancher_env: internal
+munin_node: true
+rate_limiting: false
+
+certbot_certs:
+  - email: TODO@gmail.com
+    domains:
+      - registry.infra.insecurity-insa.fr
+certbot_create_if_missing: true
+
+fstab_partitions:
+  - device: /dev/sdb
+    number: 1
+    fstype: ext4
+    mount_point: /persistent

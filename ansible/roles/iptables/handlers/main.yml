@@ -1,0 +1,7 @@
+---
+- name: restart iptables-custom service
+  systemd:
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    name: iptables-custom

@@ -1,0 +1,9 @@
+fstab_partitions:
+  - device: /dev/sdb
+    number: 1
+    fstype: ext4
+    mount_point: /persistent
+
+mysql_server_id: 3
+
+munin_node: true

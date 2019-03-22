@@ -1,0 +1,23 @@
+---
+- name: Set up multiple authorized keys
+  authorized_key:
+    user: root
+    state: present
+    key: '{{ item }}'
+  with_file:
+    - ../files/hugo
+    - ../files/leo-ovh-mba
+    - ../files/leo-mbp
+    - ../files/mgmt
+    - ../files/paul
+    - ../files/lemni
+
+- name: Apply hardened sshd_config file
+  copy:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart ssh

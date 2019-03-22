@@ -1,0 +1,51 @@
+# Copyright (c) 2016, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+#
+
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/
+
+[mysqld]
+
+# General replication settings
+gtid_mode = ON
+enforce_gtid_consistency = ON
+master_info_repository = TABLE
+relay_log_info_repository = TABLE
+binlog_checksum = NONE
+log_slave_updates = ON
+log_bin = binlog
+binlog_format = ROW
+transaction_write_set_extraction = XXHASH64
+loose-group_replication_bootstrap_group = OFF
+loose-group_replication_start_on_boot = ON
+loose-group_replication_ssl_mode = REQUIRED
+loose-group_replication_recovery_use_ssl = 1
+
+# Shared replication group configuration
+loose-group_replication_group_name = "{{ mysql_replication_group_name }}"
+loose-group_replication_ip_whitelist = "{{ groups['replica-01'][0] }},{{ groups['replica-02'][0] }},{{ groups['replica-03'][0] }}"
+loose-group_replication_group_seeds = "{{ groups['replica-01'][0] }}:33061,{{ groups['replica-02'][0] }}:33061,{{ groups['replica-03'][0] }}:33061"
+
+# Single or Multi-primary mode? Uncomment these two lines
+# for multi-primary mode, where any host can accept writes
+#loose-group_replication_single_primary_mode = OFF
+#loose-group_replication_enforce_update_everywhere_checks = ON
+
+# Host specific replication configuration
+server_id = {{ mysql_server_id }}
+bind-address = "{{ inventory_hostname }}"
+report_host = "{{ inventory_hostname }}"
+loose-group_replication_local_address = "{{ inventory_hostname }}:33061"

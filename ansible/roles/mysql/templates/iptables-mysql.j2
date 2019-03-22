@@ -1,0 +1,19 @@
+{% for group in groups %}
+{% if group in mysql_allowed_groups %}
+{% for host in groups[group] %}
+-A INSHACK -p tcp -s {{ host }} -m multiport --dports 3306 -j ACCEPT
+{% endfor %}
+{% endif %}
+{% endfor %}
+-A INSHACK -p tcp -s 172.17.0.0/16 -m multiport --dports 3306 -j ACCEPT
+-A INSHACK -p tcp -m multiport --dports 3306 -j LOG
+-A INSHACK -p tcp -m multiport --dports 3306 -j DROP
+
+{% for group in groups %}
+{% if group in mysql_replication_groups %}
+{% for host in groups[group] %}
+-A INSHACK -p tcp -s {{ host }} -m multiport --dports 33061 -j ACCEPT
+{% endfor %}
+{% endif %}
+{% endfor %}
+-A INSHACK -p tcp -m multiport --dports 33061 -j DROP

@@ -1,0 +1,20 @@
+---
+- name: Install parted package
+  apt:
+    name: parted
+    state: present
+
+- include_tasks: parted.yml
+  with_items: "{{ fstab_partitions }}"
+  loop_control:
+    loop_var: partition_item
+
+- include_tasks: filesystem.yml
+  with_items: "{{ fstab_partitions }}"
+  loop_control:
+    loop_var: partition_item
+
+- include_tasks: mount.yml
+  with_items: "{{ fstab_partitions }}"
+  loop_control:
+    loop_var: partition_item

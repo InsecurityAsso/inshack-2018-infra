@@ -1,0 +1,3 @@
+-A INSHACK -p tcp -s {{ groups['management'][0] }} -m multiport --dports 4949 -j ACCEPT
+-A INSHACK -p tcp -m multiport --dports 4949 -j LOG
+-A INSHACK -p tcp -m multiport --dports 4949 -j DROP

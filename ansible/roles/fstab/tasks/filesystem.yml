@@ -1,0 +1,5 @@
+---
+- name: Create filesystem
+  filesystem:
+    fstype: "{{ partition_item.fstype }}"
+    dev: "{{ partition_item.device }}{{ partition_item.number }}"

@@ -1,0 +1,103 @@
+---
+- name: apply iptables mysql rules
+  template:
+    src: iptables-mysql.j2
+    dest: /etc/iptables-custom/iptables-mysql
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart iptables-custom service
+
+- name: Add mysqld apt key.
+  apt_key:
+    url: https://repo.mysql.com/RPM-GPG-KEY-mysql
+    state: present
+
+- name: Add mysqld repository.
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - deb http://repo.mysql.com/apt/debian/ stretch mysql-5.7
+    - deb-src http://repo.mysql.com/apt/debian/ stretch mysql-5.7
+
+- name: Install mysql-server
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-server
+    - uuid-runtime
+    - python-mysqldb
+    - libcache-cache-perl # munin requirement
+    - libdbi-perl # munin requirement
+    - libdbd-mysql-perl # munin requirement
+
+- name: Copy .pMysqlRoot
+  copy:
+    content: "{{ mysql_root_password }}"
+    dest: /root/.pMysqlRoot
+    owner: root
+    group: root
+    mode: 0644
+  notify: change mysql root password
+
+- name: Copy .pMysqlCattle
+  copy:
+    content: "{{ mysql_cattle_password }}"
+    dest: /root/.pMysqlCattle
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy .pMysqlRepl
+  copy:
+    content: "{{ mysql_repl_password }}"
+    dest: /root/.pMysqlRepl
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy .pMysqlMunin
+  copy:
+    content: "{{ mysql_munin_password }}"
+    dest: /root/.pMysqlMunin
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Link mysql_connections munin plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_
+    dest: /etc/munin/plugins/mysql_connections
+    owner: root
+    group: root
+    state: link
+  notify: restart munin-node
+
+- name: Link mysql_select_types munin plugin
+  file:
+    src: /usr/share/munin/plugins/mysql_
+    dest: /etc/munin/plugins/mysql_select_types
+    owner: root
+    group: root
+    state: link
+  notify: restart munin-node
+
+- name: Apply my.cnf configuration file
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart mysql
+
+- name: Plan periodic backup of databases
+  copy:
+    content: "*/15 * * * * root mysqldump -u 'cattle' -p$(cat /root/.pMysqlCattle) cattle | gzip > /persistent/mysql-backup/cattle_`date +\\%Y\\%m\\%d_\\%H\\%M`.zip\n"
+    dest: /etc/cron.d/mysqldump
+    owner: root
+    group: root
+    mode: 0640

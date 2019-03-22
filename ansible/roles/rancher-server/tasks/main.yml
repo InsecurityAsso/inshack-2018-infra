@@ -1,0 +1,57 @@
+---
+- name: apply iptables rancher rules
+  template:
+    src: iptables-rancher.j2
+    dest: /etc/iptables-custom/iptables-rancher
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart iptables-custom service
+
+- name: create cert dir
+  file:
+    path: /persistent/nginx-proxy/ssl
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: copy ssl crt content
+  copy:
+    src: rancher.infra.insecurity-insa.fr.crt
+    dest: /persistent/nginx-proxy/ssl/rancher.infra.insecurity-insa.fr.crt
+    mode: 0644
+    decrypt: yes
+
+- name: copy ssl key content
+  copy:
+    src: rancher.infra.insecurity-insa.fr.key
+    dest: /persistent/nginx-proxy/ssl/rancher.infra.insecurity-insa.fr.key
+    mode: 0644
+    decrypt: yes
+
+- name: nginx proxy
+  docker_container:
+    name: nginx-proxy
+    image: jwilder/nginx-proxy:latest
+    volumes:
+      - /persistent/nginx-proxy/ssl:/etc/nginx/certs:ro
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    published_ports:
+      - 80:80
+      - 443:443
+
+- name: rancher server container
+  docker_container:
+    name: rancher-server
+    image: rancher/server:v1.6.15
+    env:
+      VIRTUAL_PORT: 8080
+      VIRTUAL_HOST: rancher.infra.insecurity-insa.fr
+    command: --db-host {{ mysql_master }} --db-port 3306 --db-user cattle --db-pass {{ mysql_cattle_password }} --db-name cattle --advertise-address {{ inventory_hostname }}
+    published_ports:
+      - 9345:9345
+      - 8080:8080
+    restart_policy: unless-stopped

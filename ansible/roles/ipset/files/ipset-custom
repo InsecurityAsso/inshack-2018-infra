@@ -1,0 +1,79 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          ipset-custom
+# Required-Start:    networking
+# Required-Stop:     networking
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# X-Start-Before:    iptables-custom
+# Short-Description: Install some ipset custom rules
+# Description:       Install some ipset custom rules
+### END INIT INFO
+
+PATH=/bin:/usr/sbin:/sbin
+NAME='ipset-custom'
+DESC='ipset-custom'
+
+IPSET_CONFIG_DIR=/etc/ipset.d
+
+# Colors
+COLOROFF="\033[1;0m"
+REDCOLOR="\033[1;31m"
+GREENCOLOR="\033[1;32m"
+ORANGECOLOR="\033[1;33m"
+
+ipset_flush() {
+
+    # Flush all the IPset sets.
+    echo 'Flushing all the sets.'
+    ipset flush > /dev/null 2>&1
+
+    # Try to destroy all the IPset sets. The set already used by the kernel
+    # will be locked.
+    for localset in `ipset list -n`; do
+        echo "Try to destroy ${localset}, if it is not already used by the kernel."
+        ipset destroy ${localset} > /dev/null 2>&1
+    done
+
+}
+
+ipset_restore() {
+
+    echo 'Restoring sets:'
+    check=`/usr/bin/find /etc/ipset.d/ -type f -name '*.ipset' -print | /usr/bin/wc -l`
+    if [ $check -eq 0 ]; then
+        echo -e "[${ORANGECOLOR}WARN${COLOROFF}] /etc/ipset.d is empty."
+        exit 0
+    fi
+
+    for file in ${IPSET_CONFIG_DIR}/*.ipset; do
+        echo "${file}"
+        ipset restore -! < ${file}
+
+        if [ $? -ne 0 ]; then
+            echo -e "[${REDCOLOR}FAILED${COLOROFF}]"
+            exit 1
+        fi
+    done
+
+    echo -e "[${GREENCOLOR}OK${COLOROFF}]"
+
+}
+
+case "$1" in
+    start)
+        echo "Starting $DESC:"
+        ipset_restore
+        ;;
+    restart)
+        echo "Restarting $DESC:"
+        ipset_flush
+        ipset_restore
+        ;;
+    *)
+        echo "Usage: $0 {start|restart}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

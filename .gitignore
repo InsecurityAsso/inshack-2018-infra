@@ -1,0 +1,9 @@
+# Infra
+.terraform
+terraform.tfstate*
+terraform.tfvars
+ansible/vault-password
+ansible/*.retry
+
+# Pour macOS : Personne n'est parfait ;-)
+*.DS_Store

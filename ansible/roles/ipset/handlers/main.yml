@@ -1,0 +1,7 @@
+---
+- name: restart ipset-custom service
+  systemd:
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    name: ipset-custom

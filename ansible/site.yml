@@ -1,0 +1,85 @@
+---
+# This playbook deploys the whole application stack in this site.
+
+- name: apply common configuration to all nodes
+  hosts:
+    - privileged-node
+  remote_user: root
+  gather_facts: false
+
+  pre_tasks:
+  - name: Install python2 for Ansible
+    raw: bash -c "test -e /usr/bin/python || (apt -qqy update && apt install -qqy python)"
+    register: output
+    changed_when: output.stdout != ""
+  - name: Gathering Facts
+    setup:
+  roles:
+    - common
+    - ipset
+
+- name: configure and deploy the replica nodes
+  hosts:
+    - replica-01
+    - replica-02
+    - replica-03
+  remote_user: root
+  vars_files:
+    - vars/public.yml
+    - vars/private.yml
+  roles:
+    - iptables
+    - munin
+    - fstab
+    - mysql
+    - docker
+    - rancher-server
+
+- name: configure and deploy the registry VM
+  hosts:
+    - registry
+    - registry-rescue
+    - registry-chal
+  remote_user: root
+  vars_files:
+    - vars/public.yml
+    - vars/private.yml
+  roles:
+    - iptables
+    - fstab
+    - certbot
+    - docker
+    - rancher
+    - munin
+
+- name: configure and deploy the management VM
+  hosts:
+    - management
+  remote_user: root
+  vars_files:
+    - vars/public.yml
+    - vars/private.yml
+  roles:
+    - iptables
+    - docker
+    - munin
+    - mgmt
+
+- name: configure and deploy the rancher nodes
+  hosts:
+    - chal-node
+    - chal-node-rescue
+    - privileged-node
+    - privileged-node-rescue
+    - internal-node
+    - internal-node-rescue
+    - internal-db-01
+  remote_user: root
+  vars_files:
+    - vars/private.yml
+    - vars/public.yml
+  roles:
+    - iptables
+    - docker
+    - rancher
+    - munin

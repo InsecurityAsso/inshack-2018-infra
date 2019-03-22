@@ -1,0 +1,2 @@
+rate_limiting: false
+rancher_env: internal

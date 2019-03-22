@@ -1,0 +1,8 @@
+---
+- name: Mount up device by path
+  mount:
+    src: "{{ partition_item.device }}{{ partition_item.number }}"
+    path: "{{ partition_item.mount_point }}"
+    fstype: "{{ partition_item.fstype }}"
+    opts: nofail
+    state: mounted

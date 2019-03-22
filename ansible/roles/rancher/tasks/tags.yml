@@ -1,0 +1,23 @@
+---
+- name: Find rancher host
+  uri:
+    method: GET
+    status_code: 200
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/hosts"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+  register: hosts
+
+- name: Add labels
+  uri:
+    method: PUT
+    status_code: 200
+    body:
+      labels: "{{ rancher_host_tags[ansible_fqdn]|combine(hosts.json.data|selectattr('hostname', 'equalto', ansible_fqdn)|map(attribute='labels')|first) }}"
+    body_format: json
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/hosts/{{ hosts.json.data|selectattr('hostname', 'equalto', ansible_fqdn)|map(attribute='id')|first }}"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+  when: hosts.json.data|list|length > 0 and
+        rancher_host_tags[ansible_fqdn] is defined
+  register: created_stack

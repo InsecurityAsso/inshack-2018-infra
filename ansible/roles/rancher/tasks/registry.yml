@@ -1,0 +1,103 @@
+---
+- name: Create registry data folder
+  file:
+    path: /persistent/registry/data
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+
+- name: Create registry auth folder
+  file:
+    path: /persistent/registry/auth
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+
+- name: Copy registry htpasswd file
+  copy:
+    src: registry-auth
+    dest: /persistent/registry/auth/htpasswd
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Find stack (first attempt)
+  uri:
+    method: GET
+    status_code: 200
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/stacks"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+  register: stacks
+
+- name: Create stack if not exists
+  uri:
+    method: POST
+    status_code: 201
+    body:
+      name: registry
+      system: false
+    body_format: json
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/stacks"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+  when: stacks.json.data|selectattr('name', 'equalto', 'registry')|map(attribute='id')|list|length < 1
+  register: created_stack
+
+- name: Find services
+  uri:
+    method: GET
+    status_code: 200
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/stacks/{{ created_stack.id if not created_stack.skipped else stacks.json.data|selectattr('name', 'equalto', 'registry')|map(attribute='id')|first }}/services"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+  register: services
+
+- name: Create service
+  uri:
+    method: POST
+    status_code: 201
+    url: "{{ rancher_creds[rancher_env].server_url }}/v2-beta/projects/{{ rancher_creds[rancher_env].project_id }}/service"
+    user: "{{ rancher_creds[rancher_env].access_key }}"
+    password: "{{ rancher_creds[rancher_env].secret_key }}"
+    body_format: json
+    body:
+      name: registry
+      scale: 1
+      type: service
+      startOnCreate: true
+      stackId: "{{ created_stack.id if not created_stack.skipped else stacks.json.data|selectattr('name', 'equalto', 'registry')|map(attribute='id')|first }}"
+      restartPolicy:
+        name: always
+      launchConfig:
+        imageUuid: docker:registry:2
+        kind: container
+        networkMode: managed
+        type: launchConfig
+        tty: true
+        vcpu: 1
+        environment:
+          REGISTRY_AUTH: htpasswd
+          REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+          REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+          REGISTRY_HTTP_ADDR: 0.0.0.0:443
+          REGISTRY_HTTP_TLS_CERTIFICATE: /certs/fullchain1.pem
+          REGISTRY_HTTP_TLS_KEY: /certs/privkey1.pem
+        dataVolumes:
+          - /persistent/registry/data:/var/lib/registry
+          - /persistent/registry/auth:/auth
+          - /etc/letsencrypt/archive/registry.infra.insecurity-insa.fr:/certs
+        labels:
+          io.rancher.container.pull_image: always
+          io.rancher.scheduler.affinity:host_label: registry=1
+        ports:
+          - 443:443/tcp
+  when: services.json.data|selectattr('name', 'equalto', 'registry')|map(attribute='id')|list|length < 1
+
+#
+# - name: test
+#   debug:
+#     msg: "{{ stacks.json.data|selectattr('name', 'equalto', 'prout')|map(attribute='id')|listfirst }}"
+#   when: stacks is defined

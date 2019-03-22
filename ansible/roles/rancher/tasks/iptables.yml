@@ -1,0 +1,20 @@
+---
+# tasks specific to rancher nodes
+
+- name: Copy iptables-rancher daemon
+  copy:
+    src: iptables-rancher.py
+    dest: /usr/bin/iptables-rancher
+    owner: root
+    group: root
+    mode: 0750
+  notify: restart iptables-rancher service
+
+- name: Copy iptables-rancher systemd
+  copy:
+    src: iptables-rancher.service
+    dest: /etc/systemd/system/iptables-rancher.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart iptables-rancher service

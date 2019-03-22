@@ -1,0 +1,18 @@
+---
+- include_tasks: node.yml
+  when: rancher_node
+
+- include_tasks: iptables.yml
+  when: rate_limiting
+
+- include_tasks: registry.yml
+  when: "'registry' in hostvars[inventory_hostname].group_names"
+
+- include_tasks: registry-rescue.yml
+  when: "'registry-rescue' in hostvars[inventory_hostname].group_names"
+
+- include_tasks: registry-chal.yml
+  when: "'registry-chal' in hostvars[inventory_hostname].group_names"
+
+- include_tasks: tags.yml
+  when: rancher_node

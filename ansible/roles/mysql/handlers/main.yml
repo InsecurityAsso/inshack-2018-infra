@@ -1,0 +1,13 @@
+---
+- name: change mysql root password
+  mysql_user:
+    name: root
+    login_password: FALSE_PASS_KEY_CHANGEME_TODO
+    password: "{{ mysql_root_password}}"
+    check_implicit_admin: true
+  when: inventory_hostname == groups['replica-01'][0]
+
+- name: restart mysql
+  service:
+    name: mysql
+    state: restarted

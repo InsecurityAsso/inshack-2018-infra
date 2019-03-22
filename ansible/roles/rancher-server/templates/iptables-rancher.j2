@@ -1,0 +1,10 @@
+{% for group in groups %}
+{% if group in rancher_master_groups %}
+{% for host in groups[group] %}
+-A INSHACK -p tcp -s {{ host }} -m multiport --dports 8080,9345 -j ACCEPT
+{% endfor %}
+{% endif %}
+{% endfor %}
+-A INSHACK -p tcp -s 172.17.0.0/16 -m multiport --dports 8080,9345 -j ACCEPT
+-A INSHACK -p tcp -m multiport --dports 8080,9345 -j LOG
+-A INSHACK -p tcp -m multiport --dports 8080,9345 -j DROP
